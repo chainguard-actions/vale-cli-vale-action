@@ -1,0 +1,1 @@
+# vale-cli-vale-action
