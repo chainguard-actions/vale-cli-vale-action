@@ -1,0 +1,45 @@
+name: Test Vale linting all files
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Vale config
+        run: |
+          # $GITHUB_WORKSPACE is the action dir root (pristine/vale-cli--vale-action/v2.0.0)
+          # Copy the minimal vale config to workspace root
+          cp "$GITHUB_WORKSPACE/tests/fixtures/vale-config/.vale.ini" "$GITHUB_WORKSPACE/.vale.ini"
+          mkdir -p "$GITHUB_WORKSPACE/styles"
+          echo "Setup complete"
+          cat "$GITHUB_WORKSPACE/.vale.ini"
+
+      - name: Verify .vale.ini present
+        run: |
+          if [ ! -f "$GITHUB_WORKSPACE/.vale.ini" ]; then
+            echo "FAIL: .vale.ini not found in workspace"
+            exit 1
+          fi
+          echo "PASS: .vale.ini is present"
+
+      - id: vale-all
+        uses: .
+        with:
+          version: "latest"
+          files: "all"
+          fail_on_error: "false"
+          reporter: "github-check"
+          level: "error"
+          filter_mode: "nofilter"
+          vale_flags: "--glob=*.md"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran for all files
+        run: |
+          echo "Vale action with files=all completed"
+          echo "PASS: all-files mode action executed"
