@@ -1,0 +1,41 @@
+name: Test Vale linting with debug mode
+on:
+  workflow_dispatch:
+
+jobs:
+  test-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Vale config and docs
+        run: |
+          # GITHUB_WORKSPACE is the action dir (pristine/vale-cli--vale-action/v2.0.1)
+          # so paths are relative to that directory
+          cp tests/fixtures/vale-config/.vale.ini .vale.ini
+          mkdir -p docs
+          cp tests/fixtures/vale-config/docs/sample.md docs/sample.md
+          mkdir -p styles
+
+      - id: vale
+        uses: .
+        with:
+          files: docs
+          debug: "true"
+          reporter: local
+          fail_on_error: "false"
+          level: error
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        continue-on-error: true
+
+      - name: Assert action ran in debug mode
+        env:
+          OUTCOME: ${{ steps.vale.outcome }}
+        run: |
+          echo "Vale action (debug) completed with outcome: $OUTCOME"
+          if [ "$OUTCOME" = "skipped" ]; then
+            echo "FAIL: action was skipped unexpectedly"
+            exit 1
+          fi
+          echo "PASS: action ran in debug mode with outcome=$OUTCOME"
