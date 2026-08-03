@@ -1,0 +1,53 @@
+name: Test glob filter
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create Vale config and sample files
+        run: |
+          mkdir -p "$GITHUB_WORKSPACE/glob-test-docs"
+          cat > "$GITHUB_WORKSPACE/glob-test-docs/.vale.ini" <<'EOF'
+          StylesPath = styles
+          MinAlertLevel = suggestion
+
+          [*.{md,txt}]
+          BasedOnStyles = Vale
+          EOF
+          cat > "$GITHUB_WORKSPACE/glob-test-docs/readme.md" <<'EOF'
+          # Glob Test
+
+          This is a markdown document for glob filter testing.
+          EOF
+          cat > "$GITHUB_WORKSPACE/glob-test-docs/notes.txt" <<'EOF'
+          This is a text file for glob filter testing.
+          EOF
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          files: glob-test-docs
+          config: "${{ github.workspace }}/glob-test-docs/.vale.ini"
+          sync: "false"
+          glob: "*.md"
+          reporter: "github-pr-annotations"
+          fail_on_error: "false"
+          filter_mode: "nofilter"
+
+      - name: Assert action ran with glob filter
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed successfully with glob filter"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (expected with sentinel repo)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

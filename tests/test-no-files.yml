@@ -1,0 +1,40 @@
+name: Test no files to lint
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Create Vale config
+        run: |
+          cat > "$GITHUB_WORKSPACE/.vale.ini" <<'EOF'
+          StylesPath = .vale-styles
+          MinAlertLevel = suggestion
+
+          [*.md]
+          BasedOnStyles = Vale
+          EOF
+          mkdir -p "$GITHUB_WORKSPACE/.vale-styles"
+
+      - id: action
+        uses: .
+        with:
+          files: ""
+          config: "${{ github.workspace }}/.vale.ini"
+          sync: "false"
+          reporter: "github-pr-annotations"
+          fail_on_error: "false"
+
+      - name: Assert action succeeded with no files
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action completed successfully with no files to lint"
+          else
+            echo "FAIL: expected success when no files provided, got '$OUTCOME'"
+            exit 1
+          fi
