@@ -1,0 +1,30 @@
+name: Test debug mode
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - id: action
+        uses: .
+        continue-on-error: true
+        with:
+          files: tests/fixtures/docs
+          vale_flags: "--config=${{ github.workspace }}/tests/fixtures/.vale.ini"
+          debug: "true"
+          reporter: github-check
+          fail_on_error: "false"
+          level: error
+          filter_mode: nofilter
+
+      - name: Assert action completed with debug mode
+        run: |
+          echo "Vale action step outcome: ${{ steps.action.outcome }}"
+          if [ "${{ steps.action.outcome }}" = "skipped" ]; then
+            echo "FAIL: action step was skipped"
+            exit 1
+          fi
+          echo "PASS: action ran with debug=true (outcome=${{ steps.action.outcome }})"

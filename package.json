@@ -1,0 +1,45 @@
+{
+    "name": "vale-action",
+    "version": "1.0.4",
+    "description": "The official GitHub Action for Vale -- install, manage, and run Vale with ease.",
+    "main": "lib/main.js",
+    "scripts": {
+        "build": "tsc",
+        "build-min": "ncc build src/main.ts --minify",
+        "format": "prettier --write **/*.ts",
+        "test": "jest"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/errata-ai/vale-action.git"
+    },
+    "keywords": [
+        "actions",
+        "container",
+        "toolkit",
+        "setup"
+    ],
+    "author": "jdkato",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/errata-ai/vale-action/issues"
+    },
+    "homepage": "https://github.com/errata-ai/vale-action",
+    "dependencies": {
+        "@actions/core": "1.9.1",
+        "@actions/exec": "1.1.1",
+        "@actions/github": "^3.0.0",
+        "@actions/tool-cache": "^1.7.2",
+        "@types/node-fetch": "^2.6.6",
+        "@types/tmp": "^0.1.0",
+        "execa": "^3.2.0",
+        "node-fetch": "^2.6.1",
+        "tmp": "^0.1.0"
+    },
+    "devDependencies": {
+        "@types/node": "^14.0.13",
+        "@vercel/ncc": "^0.38.0",
+        "prettier": "^1.17.1",
+        "typescript": "^5.2.2"
+    }
+}
