@@ -8,6 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
+| 2.1.2 | [`2.1.2`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/2.1.2) | [`85f9f7f`](https://github.com/vale-cli/vale-action/commit/85f9f7f2c5f449ac0ae5b66662961bae3f77ca6a) |
 | v2 | [`v2`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v2) | [`38bf078`](https://github.com/vale-cli/vale-action/commit/38bf078c328061f59879b347ca344a718a736018) |
 | v2.0.0 | [`v2.0.0`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v2.0.0) | [`2056dae`](https://github.com/vale-cli/vale-action/commit/2056dae9051233962d61bc86f7ae9f3677a848d3) |
 | v2.0.1 | [`v2.0.1`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v2.0.1) | [`c4213d4`](https://github.com/vale-cli/vale-action/commit/c4213d4de3d5f718b8497bd86161531c78992084) |
