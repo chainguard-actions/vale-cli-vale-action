@@ -1,0 +1,81 @@
+import * as core from '@actions/core';
+import * as exec from '@actions/exec';
+import * as tc from '@actions/tool-cache';
+import fetch from 'node-fetch';
+import path from 'path';
+
+const releases = 'https://github.com/errata-ai/vale/releases/download';
+const last = 'https://github.com/errata-ai/vale/releases/latest/';
+
+async function lookupLint(): Promise<string> {
+  let path = '';
+  let stderr = '';
+
+  let resp = await exec.exec('which', ['vale'], {
+    listeners: {
+      stdout: (buffer: Buffer) => (path = buffer.toString().trim()),
+      stderr: (data: Buffer) => (stderr += data.toString())
+    }
+  });
+
+  if (resp !== 0) {
+    core.setFailed(stderr);
+  }
+
+  core.info(`Using the install at ${path}`)
+  return path;
+}
+
+export async function installLint(version: string): Promise<string> {
+  if (version === 'none') {
+    core.info(`Assuming a version of vale is already available.`);
+    return await lookupLint();
+  }
+
+  core.info(`Installing Vale version '${version}' ...`);
+  if (version === 'latest') {
+    const response = await fetch(last);
+    const vs = response.url;
+    const parts = vs.split(`/`);
+    version = parts[parts.length - 1].substring(1);
+  }
+  const url = releases + `/v${version}/vale_${version}_Linux_64-bit.tar.gz`;
+  const archivePath = await tc.downloadTool(url);
+
+  let extractedDir = '';
+
+  const args = ['xz'];
+  if (process.platform.toString() != 'darwin') {
+    args.push('--overwrite');
+  }
+  extractedDir = await tc.extractTar(archivePath, process.env.HOME, args);
+
+  const lintPath = path.join(extractedDir, `vale`);
+  core.info(`Installed version '${version}' into '${lintPath}'.`);
+
+  return lintPath;
+}
+
+export async function installReviewDog(version: string, url?: string): Promise<string> {
+  core.info(`Installing ReviewDog version '${version}' ...`);
+  
+  if (!url){
+    url = `https://github.com/reviewdog/reviewdog/releases/download/v${version}/reviewdog_${version}_Linux_x86_64.tar.gz`;
+  }
+
+  const archivePath = await tc.downloadTool(url);
+
+  let extractedDir = '';
+
+  const args = ['xz'];
+  if (process.platform.toString() != 'darwin') {
+    args.push('--overwrite');
+  }
+
+  extractedDir = await tc.extractTar(archivePath, process.env.HOME, args);
+
+  const reviewdogPath = path.join(extractedDir, `reviewdog`);
+
+  core.info(`Installed reviewdog from '${url}' into '${reviewdogPath}'.`);
+  return reviewdogPath;
+}

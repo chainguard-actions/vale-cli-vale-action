@@ -1,0 +1,37 @@
+name: Test debug mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_EVENT_NAME: push
+      GITHUB_REF: refs/heads/main
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up vale config and sample file
+        run: |
+          # Write a minimal .vale.ini with no packages to avoid network downloads during sync
+          printf 'StylesPath = styles\nMinAlertLevel = suggestion\n' > "$GITHUB_WORKSPACE/.vale.ini"
+          mkdir -p "$GITHUB_WORKSPACE/styles"
+          # Write a simple markdown file to lint
+          printf '# Sample Document\n\nThis is a sample document for testing Vale linting.\n' > "$GITHUB_WORKSPACE/sample.md"
+          echo "Setup complete"
+          cat "$GITHUB_WORKSPACE/.vale.ini"
+
+      - id: action
+        uses: .
+        with:
+          version: "3.7.1"
+          files: "sample.md"
+          debug: "true"
+          reporter: "local"
+          filter_mode: "nofilter"
+          fail_on_error: "false"
+          token: ${{ github.token }}
+
+      - name: Assert action completed in debug mode
+        run: |
+          echo "Vale action completed in debug mode successfully"
+          echo "PASS"

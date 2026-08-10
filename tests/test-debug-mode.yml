@@ -1,0 +1,30 @@
+name: Test debug mode
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Vale config and test content
+        run: |
+          cp "$GITHUB_WORKSPACE/tests/fixtures/vale-config/.vale.ini" "$GITHUB_WORKSPACE/.vale.ini"
+          mkdir -p "$GITHUB_WORKSPACE/styles"
+          mkdir -p "$GITHUB_WORKSPACE/content"
+          cp "$GITHUB_WORKSPACE/tests/fixtures/content/sample.md" "$GITHUB_WORKSPACE/content/sample.md"
+
+      - id: action
+        uses: .
+        with:
+          files: content
+          reporter: local
+          fail_on_error: "false"
+          filter_mode: "nofilter"
+          debug: "true"
+          level: "error"
+
+      - name: Assert action completed with debug enabled
+        run: |
+          echo "Action ran with debug=true successfully"
+          echo "PASS"
