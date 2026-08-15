@@ -16,32 +16,20 @@ Action **vale-cli--vale-action/2.1.2** was hardened automatically. 3 finding(s) 
 
 ### unpinned-uses (severity: high)
 
-Multiple workflow files reference GitHub Actions using mutable tags instead of full 40-character SHA commit digests, making them vulnerable to supply-chain attacks if the tag is moved.
-
-.github/workflows/codeql.yml:
-  - uses: actions/checkout@v3
-  - uses: github/codeql-action/init@v2
-  - uses: github/codeql-action/autobuild@v2
-  - uses: github/codeql-action/analyze@v2
-
-.github/workflows/main.yml:
-  - uses: actions/checkout@v2
-
-.github/workflows/major.yml:
-  - uses: nowactions/update-majorver@v1
+Multiple workflow files reference actions by mutable tag/version refs instead of full 40-character SHA commit digests, making them vulnerable to supply-chain attacks if the tag is moved. Failing references: codeql.yml — actions/checkout@v3, github/codeql-action/init@v2, github/codeql-action/autobuild@v2, github/codeql-action/analyze@v2; main.yml — actions/checkout@v2; major.yml — nowactions/update-majorver@v1.
 
 Locations:
 
-- `.github/workflows/codeql.yml:24`
-- `.github/workflows/codeql.yml:27`
-- `.github/workflows/codeql.yml:32`
-- `.github/workflows/codeql.yml:35`
-- `.github/workflows/main.yml:8`
-- `.github/workflows/major.yml:12`
+- `.github/workflows/codeql.yml:25`
+- `.github/workflows/codeql.yml:28`
+- `.github/workflows/codeql.yml:33`
+- `.github/workflows/codeql.yml:36`
+- `.github/workflows/main.yml:9`
+- `.github/workflows/major.yml:13`
 
 ### missing-permissions (severity: medium)
 
-main.yml has no top-level 'permissions:' key and its only job ('vale') also has no job-level 'permissions:' key. Without explicit permissions, the workflow inherits the default repository token permissions, which may be overly broad.
+main.yml has no top-level 'permissions:' key and its only job ('vale') also has no job-level 'permissions:' key, so the workflow runs with default (broad) repository permissions.
 
 Locations:
 
@@ -49,7 +37,7 @@ Locations:
 
 ### missing-permissions (severity: medium)
 
-major.yml has no top-level 'permissions:' key and its only job ('update-majorver') also has no job-level 'permissions:' key. Without explicit permissions, the workflow inherits the default repository token permissions, which may be overly broad.
+major.yml has no top-level 'permissions:' key and its only job ('update-majorver') also has no job-level 'permissions:' key, so the workflow runs with default (broad) repository permissions.
 
 Locations:
 
@@ -63,5 +51,11 @@ Locations:
 
 **Notes:**
 
-Fixed all 6 unpinned action references by pinning to full SHA digests: actions/checkout@v3 → a37ce9120846195fa4ece8f58b268e6043cb2f26, actions/checkout@v2 → 0717577d45739eb3c851188b29f50ed6c0b2194e, github/codeql-action/{init,autobuild,analyze}@v2 → b8d3b6e8af63cde30bdc382c0bc28114f4346c88, nowactions/update-majorver@v1 → f2014bbbba95b635e990ce512c5653bd0f4753fb. Added `permissions: {}` top-level block to main.yml (no special permissions needed). Added `permissions: {}` top-level block to major.yml with `contents: write` at the job level (needed by update-majorver to push tag updates). codeql.yml already had explicit job-level permissions so no permissions changes were needed there.
+Fixed all findings across three workflow files:
+
+1. codeql.yml: Pinned actions/checkout@v3 → @a37ce9120846195fa4ece8f58b268e6043cb2f26, and all three github/codeql-action/* @v2 references → @b8d3b6e8af63cde30bdc382c0bc28114f4346c88. This file already had job-level permissions so no permissions change was needed.
+
+2. main.yml: Pinned actions/checkout@v2 → @0717577d45739eb3c851188b29f50ed6c0b2194e. Added top-level `permissions: {}` to restrict default broad permissions.
+
+3. major.yml: Pinned nowactions/update-majorver@v1 → @f2014bbbba95b635e990ce512c5653bd0f4753fb. Added top-level `permissions: {}` and job-level `permissions: contents: write` (the minimum needed for the update-majorver action to push tag updates).
 
