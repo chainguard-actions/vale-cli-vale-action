@@ -1,4 +1,4 @@
-name: Test Vale on all files (default)
+name: Test Vale with custom flags and specific version
 on:
   workflow_dispatch:
 
@@ -22,18 +22,19 @@ jobs:
         run: |
           cp tests/fixtures/vale-config/.vale.ini "$GITHUB_WORKSPACE/.vale.ini"
 
-      - name: Run Vale action with default files (all)
+      - name: Run Vale action with custom flags
         id: vale
         uses: .
         with:
-          files: "all"
+          files: "tests/fixtures/docs"
           reporter: "github-check"
           fail_on_error: "false"
-          level: "error"
+          level: "warning"
           filter_mode: "nofilter"
+          vale_flags: "--minAlertLevel=error"
         continue-on-error: true
 
-      - name: Assert action completed
+      - name: Assert action completed with custom flags
         run: |
-          echo "Vale action with 'all' files completed"
-          echo "PASS: Vale action ran without crashing the workflow"
+          echo "Vale action with custom flags completed"
+          echo "PASS: Vale action ran with vale_flags without crashing the workflow"

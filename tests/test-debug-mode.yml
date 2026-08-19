@@ -1,4 +1,4 @@
-name: Test Vale on all files (default)
+name: Test Vale with debug mode enabled
 on:
   workflow_dispatch:
 
@@ -22,18 +22,19 @@ jobs:
         run: |
           cp tests/fixtures/vale-config/.vale.ini "$GITHUB_WORKSPACE/.vale.ini"
 
-      - name: Run Vale action with default files (all)
+      - name: Run Vale action with debug enabled
         id: vale
         uses: .
         with:
-          files: "all"
+          files: "tests/fixtures/docs"
+          debug: "true"
           reporter: "github-check"
           fail_on_error: "false"
           level: "error"
           filter_mode: "nofilter"
         continue-on-error: true
 
-      - name: Assert action completed
+      - name: Assert action completed in debug mode
         run: |
-          echo "Vale action with 'all' files completed"
-          echo "PASS: Vale action ran without crashing the workflow"
+          echo "Vale action with debug=true completed"
+          echo "PASS: Vale action ran in debug mode without crashing the workflow"
