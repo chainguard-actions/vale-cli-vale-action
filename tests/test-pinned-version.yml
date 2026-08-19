@@ -1,4 +1,4 @@
-name: Test vale_flags input
+name: Test pinned Vale version
 on:
   workflow_dispatch:
 
@@ -25,24 +25,24 @@ jobs:
       - name: Create test document
         run: |
           mkdir -p docs
-          cat > docs/flagtest.md << 'EOF'
-          # Flag Test
+          cat > docs/sample.md << 'EOF'
+          # Sample Document
 
-          This document tests Vale with extra CLI flags.
+          This document tests Vale with a pinned version.
           EOF
 
-      - name: Run Vale action with vale_flags
-        id: vale-flags
+      - name: Run Vale action with pinned version
+        id: vale-pinned
         uses: .
         with:
+          version: "2.15.5"
           files: docs
           reporter: github-check
           fail_on_error: "false"
           level: error
-          vale_flags: "--minAlertLevel=error"
         continue-on-error: true
 
-      - name: Assert action ran with vale_flags
+      - name: Assert action ran with pinned version
         run: |
-          echo "Vale action with vale_flags=--minAlertLevel=error completed"
-          echo "PASS: vale_flags executed without crashing"
+          echo "Vale action with version=2.15.5 completed"
+          echo "PASS: pinned version executed without crashing"

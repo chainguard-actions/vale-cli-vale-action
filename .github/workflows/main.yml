@@ -1,0 +1,22 @@
+name: reviewdog
+on: push
+
+permissions: {}
+
+jobs:
+  vale:
+    name: runner / vale
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
+    steps:
+      - uses: actions/checkout@ee0669bd1cc54295c223e0bb666b733df41de1c5 # v2
+      - uses: ./ # Uses an action in the root directory
+        with:
+          reporter: github-check
+          fail_on_error: true
+          level: warning
+          debug: true
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}

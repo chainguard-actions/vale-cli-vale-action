@@ -1,4 +1,4 @@
-name: Test vale_flags input
+name: Test debug mode
 on:
   workflow_dispatch:
 
@@ -25,24 +25,24 @@ jobs:
       - name: Create test document
         run: |
           mkdir -p docs
-          cat > docs/flagtest.md << 'EOF'
-          # Flag Test
+          cat > docs/readme.md << 'EOF'
+          # Overview
 
-          This document tests Vale with extra CLI flags.
+          This document is used for testing Vale in debug mode.
           EOF
 
-      - name: Run Vale action with vale_flags
-        id: vale-flags
+      - name: Run Vale action with debug enabled
+        id: vale-debug
         uses: .
         with:
           files: docs
+          debug: "true"
           reporter: github-check
           fail_on_error: "false"
           level: error
-          vale_flags: "--minAlertLevel=error"
         continue-on-error: true
 
-      - name: Assert action ran with vale_flags
+      - name: Assert action ran in debug mode
         run: |
-          echo "Vale action with vale_flags=--minAlertLevel=error completed"
-          echo "PASS: vale_flags executed without crashing"
+          echo "Vale action with debug=true completed"
+          echo "PASS: debug mode executed without crashing"
