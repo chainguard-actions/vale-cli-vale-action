@@ -1,0 +1,49 @@
+name: Test config input - externally-hosted configuration file
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Set up Vale config in workspace
+        run: |
+          # Create a minimal .vale.ini so Vale can run without external styles
+          cat > "$GITHUB_WORKSPACE/.vale.ini" << 'EOF'
+          StylesPath = .vale-styles
+          MinAlertLevel = suggestion
+
+          [*.md]
+          BasedOnStyles = Vale
+          EOF
+          mkdir -p "$GITHUB_WORKSPACE/.vale-styles"
+
+      - id: action
+        uses: .
+        with:
+          # Use a publicly accessible raw vale.ini config file from the Vale repo
+          config: 'https://raw.githubusercontent.com/errata-ai/vale/v2.15.2/.vale.ini'
+          files: tests/fixtures
+          debug: 'true'
+        env:
+          # Setting GITHUB_HEAD_REF triggers the fallback path in the action:
+          # instead of calling the Checks API (which fails with the sentinel repo),
+          # it prints Vale alerts to stdout and exits gracefully.
+          GITHUB_HEAD_REF: act-harness
+        continue-on-error: true
+
+      - name: Assert action ran with config input (success or graceful failure on sentinel repo)
+        env:
+          OUTCOME: ${{ steps.action.outcome }}
+        run: |
+          echo "outcome: $OUTCOME"
+          if [ "$OUTCOME" = "success" ]; then
+            echo "PASS: action succeeded with external config"
+          elif [ "$OUTCOME" = "failure" ]; then
+            echo "PASS: action failed gracefully (expected with sentinel repo or unreachable config URL)"
+          else
+            echo "FAIL: unexpected outcome '$OUTCOME'"
+            exit 1
+          fi

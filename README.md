@@ -1,21 +1,165 @@
-# vale-cli/vale-action
+# GitHub Actions + Vale
 
-The official GitHub Action for Vale -- install, manage, and run Vale with ease.
+> :octocat: The official GitHub Action for Vale -- install, manage, and run Vale with ease.
 
-Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/vale-cli/vale-action](https://github.com/vale-cli/vale-action).
+<p align="center">
+  <img width="50%" alt="A demo screenshot." src="https://user-images.githubusercontent.com/8785025/85236358-272d3680-b3d2-11ea-8793-0f45cb70189a.png">
+</p>
 
-## Versions
+## Usage
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| 2.1.2 | [`2.1.2`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/2.1.2) | [`85f9f7f`](https://github.com/vale-cli/vale-action/commit/85f9f7f2c5f449ac0ae5b66662961bae3f77ca6a) |
-| v2 | [`v2`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v2) | [`c4213d4`](https://github.com/vale-cli/vale-action/commit/c4213d4de3d5f718b8497bd86161531c78992084) |
-| v2.0.0 | [`v2.0.0`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v2.0.0) | [`2056dae`](https://github.com/vale-cli/vale-action/commit/2056dae9051233962d61bc86f7ae9f3677a848d3) |
-| v2.0.1 | [`v2.0.1`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v2.0.1) | [`c4213d4`](https://github.com/vale-cli/vale-action/commit/c4213d4de3d5f718b8497bd86161531c78992084) |
-| v2.1.0 | [`v2.1.0`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v2.1.0) | [`38bf078`](https://github.com/vale-cli/vale-action/commit/38bf078c328061f59879b347ca344a718a736018) |
-| v3 | [`v3`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v3) | [`518a913`](https://github.com/vale-cli/vale-action/commit/518a9136acc6e6668ce7c00d367051e0941e87ff) |
-| v3.0.0 | [`v3.0.0`](https://github.com/chainguard-actions/vale-cli-vale-action/tree/v3.0.0) | [`518a913`](https://github.com/vale-cli/vale-action/commit/518a9136acc6e6668ce7c00d367051e0941e87ff) |
+Add the following (or similar, but you need the `actions/checkout@master` step) to one of your [`.github/workflows`](https://help.github.com/en/github/automating-your-workflow-with-github-actions/configuring-a-workflow) files:
 
+```yaml
+name: Linting
+on: [push]
+
+jobs:
+  prose:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@master
+
+    - name: Vale
+      uses: errata-ai/vale-action@v1
+      with:
+        # Optional
+        styles: |
+          https://github.com/errata-ai/Microsoft/releases/latest/download/Microsoft.zip
+          https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
+
+        # Optional
+        config: https://raw.githubusercontent.com/errata-ai/vale/master/.vale.ini
+
+        # Optional
+        files: path/to/lint
+      env:
+        # Required, set by GitHub actions automatically:
+        # https://docs.github.com/en/actions/security-guides/automatic-token-authentication#about-the-github_token-secret
+        GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+```
+
+## Repository Structure
+
+The recommended repository structure makes use of the existing `.github` directory to hold all of our Vale-related resources:
+
+```text
+.github
+├── styles
+│   └── vocab.txt
+└── workflows
+    └── main.yml
+.vale.ini
+...
+```
+
+Where `styles` represents your [`StylesPath`](https://errata-ai.github.io/vale/styles/). The top-level `.vale.ini` file should reference this directory:
+
+```ini
+StylesPath = .github/styles
+MinAlertLevel = suggestion
+
+[*.md]
+BasedOnStyles = Vale
+```
+
+## Inputs
+
+You can further customize the linting processing by providing one of the following optional inputs.
+
+### `styles`
+
+`styles` is a space-delimited list of external styles to install into your repository's local `StylesPath`. Each link needs to point to a single `.zip` file containing the style:
+
+```yaml
+with:
+  styles: |
+    https://github.com/errata-ai/Microsoft/releases/latest/download/Microsoft.zip
+    https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
+```
+
+See [errata-ai/styles](https://github.com/errata-ai/styles) for more information.
+
+### `config`
+
+`config` is a single, remotely-hosted [Vale configuration file](https://errata-ai.github.io/vale/config/):
+
+```yaml
+with:
+  config: https://raw.githubusercontent.com/errata-ai/vale/master/.vale.ini
+```
+
+This configuration file can be hosted in another repo (as shown above), a GitHub Gist, or another source altogether. If you also have a `.vale.ini` file in the local repo, the two files will be combined according to the following rules:
+
+1. Any multi-value entry in the local `.vale.ini` file (e.g., `BasedOnStyles`) will be combined with the remote entry.
+2. Any single-value entry in the local `.vale.ini` file (e.g., `MinAlertLevel`) will override the remote entry altogether.
+
+### `files` (default: `all`)
+
+`files` specifies where Vale will look for files to lint:
+
+```yaml
+with:
+  files: path/to/lint
+```
+
+You can supply this value one of three ways:
+
+- `files: all` (default): The repo's root directory; equivalent to calling `vale .`.
+
+- `files: __onlyModified`: Lint only files that have been modified within a PR.
+
+- `files: path/to/lint`: A single file or directory; equivalent to calling `vale path/to/lint`.
+
+- `files: '["input1", "input2"]'`: A list of file or directory arguments; equivalent to calling `vale input1 input2`.
+
+### `onlyAnnotateModifiedLines` (default: `false`)
+
+In case you want the action to only annotate lines that have been modified within a PR. This is helpful in case you're introducing vale to a repository that (still) has a lot of lints and don't want to overwhelm everyone.
+
+```yaml
+with:
+  onlyAnnotateModifiedLines: true
+```
+
+## Limitations
+
+Due to the current [token permissions](https://help.github.com/en/articles/virtual-environments-for-github-actions#token-permissions),
+this Action **CAN NOT** post annotations to PRs from forked repositories.
+
+This will likely be fixed by [toolkit/issues/186](https://github.com/actions/toolkit/issues/186).
+
+A workaround is to run this action as a follow-up workflow.
+For example, pull_request workflow generates source artifact and post-workflow scan artifact with vale and then annotate the commit. Use `OVERRIDE_GITHUB_SHA` environment variable to override the commit SHA to annotate if matching a Pull Request.
+
+
+```yaml
+
+on:
+  workflow_run:
+    workflows: ["PR check"]
+    types:
+      - completed
+
+jobs:
+  vale:
+    runs-on: ubuntu-20.04
+    steps:
+      ...
+      - name: Grab pull request sha1
+        run: |
+          ....
+          echo "PR_SHA=$pr_sha" >> $GITHUB_ENV
+      - name: Vale Linter
+        uses: errata-ai/vale-action@v1.4.3
+        with:
+          ...
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          OVERRIDE_GITHUB_SHA: ${{env.PR_SHA}}
+
+```          
 ## Privacy
 
 This Action contacts Chainguard's licensing server to verify authorization. Connection metadata (IP address, GitHub repository identifier, timestamp, and any metadata encoded in the auth token) is transmitted to Chainguard, Inc. even if authorization is denied in accordance with our [Privacy Notice](https://www.chainguard.dev/legal/privacy-notice)

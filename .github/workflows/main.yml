@@ -1,0 +1,36 @@
+name: CI
+on: push
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v1
+      - name: Vale
+        uses: ./ # Uses an action in the root directory
+        with:
+          styles: |
+            https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
+            https://github.com/errata-ai/Joblint/releases/latest/download/Joblint.zip
+          config: https://gist.githubusercontent.com/jdkato/171186055d382c6065273fe5a7eeeb61/raw/c6832996f5c77002142df70a3aa2be521fe747a7/.vale.ini
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@61b9e3751b92087fd0b06925ba6dd6314e06f089 # master
+
+      - name: Vale
+        uses: errata-ai/vale-action@75a4db25a0833de205ab750af4b4ed36e24280ec # v1.3.0
+        with:
+          styles: |
+            https://github.com/errata-ai/Microsoft/releases/latest/download/Microsoft.zip
+            https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
