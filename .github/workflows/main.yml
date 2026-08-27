@@ -1,8 +1,7 @@
 name: reviewdog
 on: push
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   vale:
