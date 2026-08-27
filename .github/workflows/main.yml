@@ -1,12 +1,13 @@
 name: CI
 on: push
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
   lint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@50fbc622fc4ef5163becd7fab6573eac35f8462e # v1
@@ -22,6 +23,8 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@61b9e3751b92087fd0b06925ba6dd6314e06f089 # master

@@ -16,21 +16,21 @@ Action **vale-cli--vale-action/v1.5.0** was hardened automatically. 2 finding(s)
 
 ### unpinned-uses (severity: high)
 
-Three `uses:` references in .github/workflows/main.yml are pinned to mutable tags or branch names instead of immutable 40-character commit SHAs, making the workflow vulnerable to supply-chain attacks if the referenced tag or branch is moved:
+The workflow file .github/workflows/main.yml contains three unpinned `uses:` references that use mutable tags or branch names instead of full 40-character commit SHAs:
 - `actions/checkout@v1` (tag)
 - `actions/checkout@master` (branch)
 - `errata-ai/vale-action@v1.3.0` (tag)
-Each should be replaced with a full SHA, e.g. `actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v1`.
+These can be silently redirected to different (potentially malicious) code if the referenced tag or branch is moved.
 
 Locations:
 
-- `.github/workflows/main.yml:9`
-- `.github/workflows/main.yml:21`
-- `.github/workflows/main.yml:24`
+- `.github/workflows/main.yml:8`
+- `.github/workflows/main.yml:20`
+- `.github/workflows/main.yml:23`
 
 ### missing-permissions (severity: medium)
 
-The workflow file .github/workflows/main.yml has no top-level `permissions:` key, and neither the `lint` job nor the `release` job defines its own `permissions:` block. Without explicit permissions, the workflow runs with the default (potentially broad) token permissions. A minimal `permissions:` block (e.g. `contents: read`) should be added at the top level or per job.
+The workflow file .github/workflows/main.yml has no top-level `permissions:` key, and neither the `lint` job nor the `release` job defines its own `permissions:` block. Without explicit permissions, the workflow runs with the default (potentially broad) token permissions, violating the principle of least privilege.
 
 Locations:
 
@@ -44,5 +44,5 @@ Locations:
 
 **Notes:**
 
-Fixed .github/workflows/main.yml: (1) Pinned all three mutable `uses:` references to full 40-character commit SHAs — actions/checkout@v1 → @50fbc622fc4ef5163becd7fab6573eac35f8462e, actions/checkout@master → @61b9e3751b92087fd0b06925ba6dd6314e06f089, errata-ai/vale-action@v1.3.0 → @75a4db25a0833de205ab750af4b4ed36e24280ec — with original tag/branch preserved as inline comments. (2) Added a top-level `permissions: contents: read` block to restrict the default GITHUB_TOKEN to the minimum required permissions.
+Fixed all three unpinned `uses:` references in .github/workflows/main.yml by pinning them to full 40-character commit SHAs (with original tags preserved as comments). Added a top-level `permissions: {}` block to deny all permissions by default, and added `permissions: contents: read` to both the `lint` and `release` jobs, which is the minimum required for checkout operations.
 

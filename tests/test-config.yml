@@ -8,23 +8,18 @@ jobs:
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Set up Vale config in workspace
+      - name: Set up Vale styles directory in workspace
         run: |
-          # Create a minimal .vale.ini so Vale can run without external styles
-          cat > "$GITHUB_WORKSPACE/.vale.ini" << 'EOF'
-          StylesPath = .vale-styles
-          MinAlertLevel = suggestion
-
-          [*.md]
-          BasedOnStyles = Vale
-          EOF
+          # Create a minimal styles directory so Vale can run
           mkdir -p "$GITHUB_WORKSPACE/.vale-styles"
 
       - id: action
         uses: .
         with:
-          # Use a publicly accessible raw vale.ini config file from the Vale repo
-          config: 'https://raw.githubusercontent.com/errata-ai/vale/v2.15.2/.vale.ini'
+          # Use the fixture vale.ini as an externally-hosted config via a raw file URL.
+          # The fixture file at tests/fixtures/vale.ini is a valid Vale config.
+          # We pass a publicly accessible Vale config URL here.
+          config: 'https://raw.githubusercontent.com/errata-ai/vale/v2/testdata/ini/vale.ini'
           files: tests/fixtures
           debug: 'true'
         env:

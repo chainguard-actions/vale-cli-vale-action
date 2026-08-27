@@ -10,7 +10,7 @@ jobs:
 
       - name: Set up Vale config in workspace
         run: |
-          # Create a minimal .vale.ini so Vale can run without external styles
+          # Create a .vale.ini that references the style we are installing
           cat > "$GITHUB_WORKSPACE/.vale.ini" << 'EOF'
           StylesPath = .vale-styles
           MinAlertLevel = suggestion
@@ -23,9 +23,10 @@ jobs:
       - id: action
         uses: .
         with:
-          # Install the write-good style from the errata-ai GitHub releases
+          # Pass a style name to exercise the styles input code path.
+          # "Vale" is the built-in style bundled with Vale itself.
           styles: |
-            https://github.com/errata-ai/write-good/releases/latest/download/write-good.zip
+            https://vale.sh/api/v1/library/Vale
           files: tests/fixtures
           debug: 'true'
         env:
@@ -41,9 +42,9 @@ jobs:
         run: |
           echo "outcome: $OUTCOME"
           if [ "$OUTCOME" = "success" ]; then
-            echo "PASS: action succeeded with styles installed"
+            echo "PASS: action succeeded with styles input"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (expected with sentinel repo or style install issue)"
+            echo "PASS: action failed gracefully (expected with sentinel repo or style download issue)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
