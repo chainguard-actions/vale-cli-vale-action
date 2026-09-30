@@ -10,7 +10,7 @@ jobs:
 
       - name: Set up Vale config in workspace
         run: |
-          # Create a .vale.ini that references the style we are installing
+          # Create a .vale.ini that references the style we will install
           cat > "$GITHUB_WORKSPACE/.vale.ini" << 'EOF'
           StylesPath = .vale-styles
           MinAlertLevel = suggestion
@@ -23,10 +23,9 @@ jobs:
       - id: action
         uses: .
         with:
-          # Pass a style name to exercise the styles input code path.
-          # "Vale" is the built-in style bundled with Vale itself.
+          # Install the built-in Vale style package before linting
           styles: |
-            https://vale.sh/api/v1/library/Vale
+            https://github.com/errata-ai/vale/releases/latest/download/Vale.zip
           files: tests/fixtures
           debug: 'true'
         env:
@@ -44,7 +43,7 @@ jobs:
           if [ "$OUTCOME" = "success" ]; then
             echo "PASS: action succeeded with styles input"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (expected with sentinel repo or style download issue)"
+            echo "PASS: action failed gracefully (expected with sentinel repo)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1

@@ -10,16 +10,13 @@ jobs:
 
       - name: Set up Vale styles directory in workspace
         run: |
-          # Create a minimal styles directory so Vale can run
           mkdir -p "$GITHUB_WORKSPACE/.vale-styles"
 
       - id: action
         uses: .
         with:
-          # Use the fixture vale.ini as an externally-hosted config via a raw file URL.
-          # The fixture file at tests/fixtures/vale.ini is a valid Vale config.
-          # We pass a publicly accessible Vale config URL here.
-          config: 'https://raw.githubusercontent.com/errata-ai/vale/v2/testdata/ini/vale.ini'
+          # Use a publicly-hosted Vale config file (the Vale project's own config)
+          config: 'https://raw.githubusercontent.com/errata-ai/vale/v3.7.1/.vale.ini'
           files: tests/fixtures
           debug: 'true'
         env:
@@ -37,7 +34,7 @@ jobs:
           if [ "$OUTCOME" = "success" ]; then
             echo "PASS: action succeeded with external config"
           elif [ "$OUTCOME" = "failure" ]; then
-            echo "PASS: action failed gracefully (expected with sentinel repo or unreachable config URL)"
+            echo "PASS: action failed gracefully (expected with sentinel repo)"
           else
             echo "FAIL: unexpected outcome '$OUTCOME'"
             exit 1
